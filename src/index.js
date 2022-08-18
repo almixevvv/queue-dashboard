@@ -51,7 +51,9 @@ $(() => {
             <tr>
                 <th scope="row">${curCounter}</th>
                 <td>${doc.data().name}</td>
-                <td><span class="badge bg-secondary">${doc.data().isDone ? 'DONE' : 'WAITING'}</span></td> 
+                <td><span class="badge ${doc.data().isDone ? 'bg-success' : 'bg-secondary'}">${doc.data().isDone
+				? 'FINISHED'
+				: 'WAITING'}</span></td> 
             </tr>`;
 
 			$('#formBody').append(curTemplate).show('slide', { direction: 'left' }, 1000);
