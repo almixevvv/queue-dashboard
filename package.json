@@ -1,0 +1,21 @@
+{
+	"name": "ican-ticket",
+	"version": "1.0.0",
+	"description": "debug ticket",
+	"private": true,
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Hamzah Aji",
+	"license": "ISC",
+	"dependencies": {
+		"firebase": "^9.9.2",
+		"jquery": "^3.6.0",
+		"sweetalert2": "^11.4.28",
+		"uniqid": "^5.4.0"
+	},
+	"devDependencies": {
+		"webpack": "^5.74.0",
+		"webpack-cli": "^4.10.0"
+	}
+}
