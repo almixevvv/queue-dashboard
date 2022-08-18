@@ -9,12 +9,14 @@
 	"author": "Hamzah Aji",
 	"license": "ISC",
 	"dependencies": {
+		"dotenv": "^16.0.1",
 		"firebase": "^9.9.2",
 		"jquery": "^3.6.0",
 		"sweetalert2": "^11.4.28",
 		"uniqid": "^5.4.0"
 	},
 	"devDependencies": {
+		"dotenv-webpack": "^8.0.1",
 		"webpack": "^5.74.0",
 		"webpack-cli": "^4.10.0"
 	}

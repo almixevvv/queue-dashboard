@@ -1,47 +1,88 @@
-import { initializeApp } from 'firebase/app';
-import { addDoc, getFirestore, orderBy } from 'firebase/firestore';
-import { collection, getDocs, query, setDoc, onSnapshot } from 'firebase/firestore';
+import { addDoc, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import Swal from 'sweetalert2';
-import uniqid from 'uniqid';
+
+import db from './setup';
+import { getUrlParameter, getUniversityDetails } from './functions';
 
 var $ = require('jquery');
 
-const firebaseConfig = {
-	apiKey: 'AIzaSyBDZfdt9SmJ083cFo6pMkzknAuaosU1I9E',
-	authDomain: 'ticket-expo.firebaseapp.com',
-	projectId: 'ticket-expo',
-	storageBucket: 'ticket-expo.appspot.com',
-	messagingSenderId: '649813844821',
-	appId: '1:649813844821:web:63647b156522f95d6a45dc'
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
 $(() => {
-	onSnapshot(query(collection(db, 'tickets'), orderBy('timestamp', 'asc')), (querySnapshot) => {
+	let curID = getUrlParameter('uid');
+
+	if (curID == '') {
+		Swal.fire({
+			title: 'Error!',
+			text: 'URL tidak valid, silahkan coba lagi',
+			icon: 'warning',
+			showConfirmButton: false,
+			showCancelButton: false,
+			allowOutsideClick: false
+		});
+
+		return;
+	}
+
+	getUniversityDetails(curID).then((res) => {
+		if (res.code == 200) {
+			$('#uniName').text(res.body.name);
+			$('#uniCountry').text(res.body.country);
+		} else {
+			Swal.fire({
+				title: 'Error!',
+				text: 'URL tidak valid, silahkan coba lagi',
+				icon: 'warning',
+				showConfirmButton: false,
+				showCancelButton: false,
+				allowOutsideClick: false
+			});
+
+			return;
+		}
+	});
+
+	let curCounter = 0;
+
+	onSnapshot(query(collection(db, curID), orderBy('timestamp', 'asc')), (querySnapshot) => {
 		$('#formBody').empty();
 
 		querySnapshot.forEach((doc) => {
 			let curTemplate = `
             <tr>
-                <th scope="row">1</th>
+                <th scope="row">${curCounter}</th>
                 <td>${doc.data().name}</td>
                 <td><span class="badge bg-secondary">${doc.data().isDone ? 'DONE' : 'WAITING'}</span></td> 
             </tr>`;
 
 			$('#formBody').append(curTemplate).show('slide', { direction: 'left' }, 1000);
+
+			curCounter++;
 		});
 	});
 
 	$('#insBtn').on('click', function() {
-		addDoc(collection(db, 'tickets'), {
+		let curBtn = $(this);
+
+		curBtn.attr('disabled', true);
+		curBtn.text('Please Wait');
+
+		addDoc(collection(db, curID), {
 			name: $('#namebox').val(),
 			isDone: false,
 			timestamp: Date.now()
-		});
+		}).then(() => {
+			Swal.fire({
+				title: 'Success!',
+				text: 'Silahkan tunggu nama Anda dipanggil oleh tim kami',
+				icon: 'success',
+				showConfirmButton: true,
+				confirmButtonText: 'Tutup',
+				showCancelButton: false
+			});
 
-		$('#namebox').val(null);
+			$('#namebox').val(null);
+			curBtn.attr('disabled', false);
+			curBtn.text('Daftar');
+		});
 	});
 });
