@@ -1,6 +1,23 @@
-var $ = require('jquery');
+import Swal from "sweetalert2";
 
-const getUrlParameter = function(sParam) {
+const showLoader = function (stat) {
+
+	if (stat) {
+		Swal.fire({
+			title: 'Loading...',
+			text: 'Please Wait',
+			allowOutsideClick: false,
+			didOpen: () => {
+				Swal.showLoading();
+			}
+		})
+	} else {
+		Swal.close()
+	}
+
+}
+
+const getUrlParameter = function (sParam) {
 	var sPageURL = window.location.search.substring(1),
 		sURLVariables = sPageURL.split('&'),
 		sParameterName,
@@ -14,24 +31,22 @@ const getUrlParameter = function(sParam) {
 		}
 	}
 	return false;
-};
+}
 
-const getUniversityDetails = function(data) {
+const getUniversityDetails = function (data) {
 	return new Promise((resolve, reject) => {
 		$.ajax({
-			url: 'https://backend.icedalnusa.com/API/showUniversityDetails',
+			url: 'https://backend.icedalnusa.com/Apps/showUniversityDetails',
 			method: 'POST',
-			data: {
-				id: data
-			},
-			success: function(resp) {
+			data: JSON.stringify(data),
+			success: function (resp) {
 				resolve(resp);
 			},
-			error: function(err) {
+			error: function (err) {
 				reject(err);
 			}
 		});
 	});
 };
 
-export { getUniversityDetails, getUrlParameter };
+export { getUniversityDetails, getUrlParameter, showLoader };
