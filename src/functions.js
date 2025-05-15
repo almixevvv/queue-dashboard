@@ -36,7 +36,7 @@ const getUrlParameter = function (sParam) {
 const getUniversityDetails = function (data) {
 	return new Promise((resolve, reject) => {
 		$.ajax({
-			url: 'https://backend.icedalnusa.com/Apps/showUniversityDetails',
+			url: 'https://backend.icedalnusa.com/queue/get-university',
 			method: 'POST',
 			data: JSON.stringify(data),
 			success: function (resp) {

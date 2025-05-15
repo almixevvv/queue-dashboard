@@ -6,7 +6,14 @@ module.exports = {
 	mode: 'development',
 	output: {
 		path: path.resolve(__dirname, 'dist'),
-		filename: 'ticket-bundle.js'
+		filename: 'ticket-bundle.js',
 	},
-	plugins: [ new Dotenv() ]
+	devServer: {
+		static: {
+			directory: path.join(__dirname, 'public'),
+		},
+		compress: true,
+		port: 9000,
+	},
+	plugins: [new Dotenv()],
 };
