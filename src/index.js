@@ -23,16 +23,13 @@ $(() => {
 			showConfirmButton: false,
 			showCancelButton: false,
 			allowOutsideClick: false,
-			didOpen: () => {
-				Swal.hideLoading()
-			}
-		});
-		return;
+		})
+
+		return
 	}
 
 	async function loadConfig() {
 		try {
-
 			const timestamp = new Date().getTime(); // Versi unik
 			const response = await fetch('./config.json?version=' + timestamp);
 
@@ -51,18 +48,13 @@ $(() => {
 	(async () => {
 		await loadConfig();
 
+		if (getUrlParameter('event') !== false) {
+			curParams.event = getUrlParameter('event')
+			curParams.id = curParams.id
+		}
+
 		getUniversityDetails(curParams).then((res) => {
-			if (res.code == 200) {
-
-				$('#uniName').text(res.body.name)
-				$('#uniCountry').text(res.body.country)
-
-				if (res.body.image != null || res.body.image != '') {
-					$('#uniImage').attr('src', res.body.image)
-				}
-
-				showLoader(false)
-			} else {
+			if (res.code !== 200) {
 				showLoader(false)
 
 				Swal.fire({
@@ -79,7 +71,18 @@ $(() => {
 
 				return;
 			}
+
+			$('#uniName').text(res.body.name)
+			$('#uniCountry').text(res.body.country)
+
+			if (res.body.image != null || res.body.image != '') {
+				$('#uniImage').attr('src', res.body.image)
+			}
+
+			showLoader(false)
 		})
+
+		console.log(curParams)
 
 		// Setelah event ID terisi, baru tentukan curPath
 		const curPath = `Event/${curParams.event}/${curParams.id}`;
@@ -99,11 +102,11 @@ $(() => {
                             ${doc.data().isDone ? 'FINISHED' : 'WAITING'}</span></td>
                     </tr>`;
 				$('#formBody').append(curTemplate).show('slide', { direction: 'left' }, 1000);
-			});
-		});
+			})
+		})
 
 		$('#insBtn').on('click', function () {
-			let curBtn = $(this);
+			let curBtn = $(this)
 
 			if ($('#namebox').val() === '' || $('#namebox').val().length < 2) {
 				Swal.fire({
@@ -117,32 +120,33 @@ $(() => {
 						Swal.hideLoading()
 					}
 				});
+
 				return;
-			} else {
-				curBtn.attr('disabled', true);
-				curBtn.text('Please Wait');
-
-				addDoc(collection(db, curPath), {
-					name: $('#namebox').val(),
-					isDone: false,
-					timestamp: Date.now(),
-					status: 'waiting',
-				}).then(() => {
-					Swal.fire({
-						title: 'Success!',
-						text: 'Silahkan tunggu nama Anda dipanggil oleh tim kami',
-						icon: 'success',
-						showConfirmButton: true,
-						confirmButtonText: 'Tutup',
-						showCancelButton: false
-					});
-
-					$('#namebox').val(null);
-					curBtn.attr('disabled', false);
-					curBtn.text('Daftar');
-				});
 			}
-		});
-	})();
-});
+
+			curBtn.attr('disabled', true)
+			curBtn.text('Please Wait')
+
+			addDoc(collection(db, curPath), {
+				name: $('#namebox').val(),
+				isDone: false,
+				timestamp: Date.now(),
+				status: 'waiting',
+			}).then(() => {
+				Swal.fire({
+					title: 'Success!',
+					text: 'Silahkan tunggu nama Anda dipanggil oleh tim kami',
+					icon: 'success',
+					showConfirmButton: true,
+					confirmButtonText: 'Tutup',
+					showCancelButton: false
+				});
+
+				$('#namebox').val(null);
+				curBtn.attr('disabled', false);
+				curBtn.text('Daftar');
+			})
+		})
+	})()
+})
 
