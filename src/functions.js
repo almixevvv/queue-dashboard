@@ -14,7 +14,26 @@ const showLoader = function (stat) {
 	} else {
 		Swal.close()
 	}
+}
 
+const escapeHtml = function (str) {
+	const div = document.createElement('div')
+	div.textContent = str
+	return div.innerHTML
+}
+
+function timeAgo(ts) {
+	const diffSec = Math.floor((Date.now() - ts) / 1000);
+	if (diffSec < 60) return `${diffSec} detik lalu`;
+
+	const diffMin = Math.floor(diffSec / 60);
+	if (diffMin < 60) return `${diffMin} menit lalu`;
+
+	const diffHour = Math.floor(diffMin / 60);
+	if (diffHour < 24) return `${diffHour} jam lalu`;
+
+	const diffDay = Math.floor(diffHour / 24);
+	return `${diffDay} hari lalu`;
 }
 
 const getUrlParameter = function (sParam) {
@@ -49,4 +68,4 @@ const getUniversityDetails = function (data) {
 	});
 };
 
-export { getUniversityDetails, getUrlParameter, showLoader };
+export { escapeHtml, timeAgo, getUniversityDetails, getUrlParameter, showLoader };

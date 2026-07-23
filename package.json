@@ -1,6 +1,6 @@
 {
 	"name": "ican-ticket",
-	"version": "1.2.0",
+	"version": "2.0.0",
 	"description": "debug ticket",
 	"private": true,
 	"scripts": {
@@ -11,6 +11,7 @@
 	"author": "Hamzah Aji",
 	"license": "ISC",
 	"dependencies": {
+		"@upstash/redis": "^1.38.0",
 		"dotenv": "^16.0.1",
 		"firebase": "^9.9.2",
 		"jquery": "^3.6.0",
@@ -22,5 +23,8 @@
 		"webpack": "^5.99.8",
 		"webpack-cli": "^4.10.0",
 		"webpack-dev-server": "^5.2.1"
+	},
+	"allowScripts": {
+		"protobufjs@7.4.0": true
 	}
 }

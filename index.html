@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>EXPO ICAN EDUCATION</title>
+  <title>Queue Expo ICAN Education</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -14,9 +14,7 @@
   <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
-  <link
-    href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="assets/vendor/animate.css/animate.min.css" rel="stylesheet">
@@ -37,11 +35,7 @@
   <!-- ======= Header ======= -->
   <header id="header" class="fixed-top" style="background-color: #035C96">
     <div class="container d-flex align-items-center justify-content-between">
-
-      <!-- <h1 class="logo"><a href="index.html">ICAN EDUCATION</a></h1> -->
-      <!-- Uncomment below if you prefer to use an image logo -->
-      <a href="#" class="logo"><img src="assets/img/logo_icaneducation.png" alt="" class="img-fluid"></a>
-
+      <a href="#" class="logo"><img src="assets/img/new-logo-ican-edu-white.png" alt="" class="img-fluid"></a>
     </div>
   </header><!-- End Header -->
 
@@ -60,7 +54,7 @@
     <section id="counts" class="counts pb-5">
 
       <div class="container pt-0" data-aos="fade-up">
-        <div class="row mb-5">
+        <div class="row mb-3">
           <div class="col-md-2 col-sm-12 col-xs-12">
             <img id="uniImage" src="assets/img/no-image.png" class="img-thumbnail img-responsive" style="width: 200px;" alt="...">
           </div>
@@ -71,12 +65,13 @@
             </div>
           </div>
         </div>
-        <div class="row mb-5">
+        <div class="row mb-3">
           <div class="col-md-6 col-sm-12 col-xs-12">
-            <div class="input-group mb-3">
+            <div class="input-group mb-1">
               <input type="text" class="form-control" placeholder="Nama Lengkap" id="namebox" name="name">
               <button type="button" class="btn btn-success" id="insBtn">Daftar</button>
             </div>
+            <small class="form-text font-weight-bolder">Silahkan isi sesuai dengan nama yang Anda gunakan untuk mendaftar</small>
           </div>
         </div>
 
@@ -87,10 +82,12 @@
                 <tr>
                   <th scope="col">No</th>
                   <th scope="col">Nama</th>
+                  <th scope="col">Waktu</th>
                   <th scope="col">Status</th>
                 </tr>
               </thead>
               <tbody id="formBody">
+                
               </tbody>
             </table>
           </div>
@@ -115,16 +112,15 @@
   <script src="assets/vendor/php-email-form/validate.js"></script>
 
   <!-- Template Main JS File -->
-
   <script src="assets/js/jquery-3.7.1.min.js"></script>
-
   <script src="assets/js/main.js"></script>
 
   <script>
-    const script = document.createElement("script");
-    script.src = "dist/ticket-bundle.js?version=" + new Date().getTime();
-    script.defer = true;
-    document.head.appendChild(script);
+    const script = document.createElement("script")
+    script.src = "dist/ticket-bundle.js?version=" + new Date().getTime()
+    script.defer = true
+
+    document.head.appendChild(script)
   </script>
 
 </body>
