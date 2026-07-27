@@ -162,29 +162,22 @@ $(() => {
 			showConfirmButton: false,
 			showCancelButton: false,
 			allowOutsideClick: false,
-			didOpen: () => {
-				Swal.hideLoading()
-			}
-		});
-		return;
+		})
+
+		return
 	}
 
 	// Memastikan loadConfig selesai sebelum lanjut
 	(async () => {
 		await loadConfig()
 
+		if (getUrlParameter('event') !== false) {
+			curParams.event = getUrlParameter('event')
+			curParams.id = curParams.id
+		}
+
 		getUniversityDetails(curParams).then((res) => {
-			if (res.code == 200) {
-
-				$('#uniName').text(res.body.name)
-				$('#uniCountry').text(res.body.country)
-
-				if (res.body.image != null || res.body.image != '') {
-					$('#uniImage').attr('src', res.body.image)
-				}
-
-				showLoader(false)
-			} else {
+			if (res.code !== 200) {
 				showLoader(false)
 
 				Swal.fire({
@@ -201,6 +194,15 @@ $(() => {
 
 				return;
 			}
+
+			$('#uniName').text(res.body.name)
+			$('#uniCountry').text(res.body.country)
+
+			if (res.body.image != null || res.body.image != '') {
+				$('#uniImage').attr('src', res.body.image)
+			}
+
+			showLoader(false)
 		})
 
 		$('#insBtn').on('click', async function () {
