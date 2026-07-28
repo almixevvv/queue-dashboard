@@ -1,42 +1,109 @@
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import Swal from "sweetalert2";
 import { app, db } from "./_setup";
 
 /** Firebase Messaging Function */
-export async function setupNotification(queueId) {
-	try {
+// export async function setupNotification(queueId) {
+// 	try {
 
-		const permission = await Notification.requestPermission()
+// 		const permission = await Notification.requestPermission()
 
-		if (permission !== 'granted') {
-			console.warn('User menolak notifikasi')
-			return
+// 		if (permission !== 'granted') {
+// 			console.warn('User menolak notifikasi')
+// 			return
+// 		}
+
+// 		const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
+// 		const messaging = getMessaging(app)
+
+// 		const token = await getToken(messaging, {
+// 			vapidKey: process.env.FIREBASE_VAPID,
+// 			serviceWorkerRegistration: registration
+// 		})
+
+// 		if (token) {
+// 			// Simpan token ke dokumen antrian user di Firestore
+// 			await updateDoc(doc(db), {
+// 				fcmToken: token
+// 			});
+// 		}
+
+// 		// Fallback: kalau tab sedang terbuka & fokus, tampilkan notifikasi langsung
+// 		onMessage(messaging, (payload) => {
+// 			const { title, body } = payload.notification || {};
+// 			new Notification(title || "Giliran Anda", { body });
+// 		})
+
+// 	} catch (err) {
+// 		console.error("Gagal setup push notification:", err)
+// 	}
+// }
+
+export function listenToSingleQueue(queuePath, queueId) {
+	const queueDocRef = doc(db, queuePath)
+	const unsubscribe = onSnapshot(queueDocRef, (docSnap) => {
+		if (docSnap.exists()) {
+			const data = docSnap.data()
+
+			if (data.status === 'called') {
+				new Notification(`Giliran Anda Tiba! 🔔`, {
+					body: `Halo, silakan menuju ke booth sekarang!`,
+					icon: "/assets/img/icaneducation.png",
+					vibrate: [500, 200, 500, 200, 800], // Pola getar HP
+					tag: `queue-ABCDE`,
+					requireInteraction: true
+				})
+			}
 		}
+	})
+}
 
-		const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
+export function getSavedQueues() {
+	return JSON.parse(localStorage.getItem('my_queue') || '[]')
+}
+
+export function saveQueueToStorage(queueData) {
+	const queues = getSavedQueues();
+
+	console.log(!queues.some(q => q.queueId === queueData.queueId))
+	if (!queues.some(q => q.queueId === queueData.queueId)) {
+		queues.push(queueData);
+		localStorage.setItem('my_queues', JSON.stringify(queues));
+	}
+}
+
+export function unlockAudioContext(queueStatus) {
+	if (!queueStatus) {
+		queueStatus = new Audio('/assets/audio/notification-bell.mp3')
+		queueStatus.load()
+	}
+
+	// Pancing playback singkat
+
+	queueStatus.play().then(() => {
+		queueStatus.pause()
+		queueStatus.currentTime = 0
+	}).catch((err) => console.error('Audio locked', err))
+}
+
+export async function getFCM(serviceWorker) {
+	try {
 		const messaging = getMessaging(app)
-
 		const token = await getToken(messaging, {
 			vapidKey: process.env.FIREBASE_VAPID,
-			serviceWorkerRegistration: registration
+			serviceWorkerRegistration: serviceWorker
 		})
 
-		if (token) {
-			// Simpan token ke dokumen antrian user di Firestore
-			await updateDoc(doc(db), {
-				fcmToken: token
-			});
-		}
-
-		// Fallback: kalau tab sedang terbuka & fokus, tampilkan notifikasi langsung
 		onMessage(messaging, (payload) => {
-			const { title, body } = payload.notification || {};
-			new Notification(title || "Giliran Anda", { body });
+			const { title, body } = payload || {}
+			new Notification(title || "Giliran Anda", { body })
 		})
 
+		return token
 	} catch (err) {
-		console.error("Gagal setup push notification:", err)
+		console.error('Gagal ngambil token', err)
+		return null
 	}
 }
 

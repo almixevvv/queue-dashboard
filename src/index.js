@@ -1,16 +1,17 @@
-import { addDoc, orderBy } from 'firebase/firestore';
-import { collection, query, onSnapshot } from 'firebase/firestore';
-import Swal from 'sweetalert2';
+import { addDoc, orderBy } from 'firebase/firestore'
+import { collection, query, onSnapshot } from 'firebase/firestore'
+import Swal from 'sweetalert2'
 
-import { db } from './setup';
-import { getUrlParameter, fetchUniversity, showLoader, renderTable } from './_function';
-import { fetchConfig, startLoader } from './_init';
+import { db } from './_setup'
+import { getUrlParameter, fetchUniversity, showLoader, renderTable, getFCM, unlockAudioContext, saveQueueToStorage, listenToSingleQueue } from './_function'
+import { fetchConfig, startLoader } from './_init'
 
 const curParams = {
 	id: getUrlParameter('uid'),
 	event: null
 }
 
+let queueAudio = null;
 
 $(async function () {
 	showLoader(true)
@@ -92,7 +93,7 @@ $(async function () {
 	} catch (err) {
 		Swal.fire({
 			title: 'Invalid Configuration',
-			text: 'File tidak valid. Silahkan coba lagi',
+			text: 'Link tidak valid. Silahkan coba lagi',
 			icon: 'warning',
 			showConfirmButton: false,
 			showCancelButton: false,
@@ -105,11 +106,7 @@ $(async function () {
 		return
 	}
 
-	$('#insBtn').on('click', function () {
-
-		if ('Notification' in window && Notification.permission === 'default') {
-			Notification.requestPermission()
-		}
+	$('#insBtn').on('click', async function () {
 
 		let curBtn = $(this)
 
@@ -129,18 +126,65 @@ $(async function () {
 			return
 		}
 
-		curBtn.attr('disabled', true)
-		curBtn.text('Please Wait')
+		if ('Notification' in window && Notification.permission !== 'granted') {
+			await Notification.requestPermission()
+		}
 
-		const deviceId = crypto.randomUUID()
+		let permission = Notification.permission
 
-		addDoc(collection(db, curPath), {
-			name: $('#namebox').val(),
-			deviceId: deviceId,
-			isDone: false,
-			timestamp: Date.now(),
-			status: 'waiting',
-		}).then(() => {
+		if (permission !== 'granted') {
+			Swal.fire({
+				title: 'Ijinkan Notifikasi',
+				text: 'Silahkan nyalakan notifikasi untuk mengetahui giliran Anda',
+				icon: 'warning',
+				showConfirmButton: true,
+				confirmButtonText: 'Nyalakan',
+				showCancelButton: false
+			}).then((res) => {
+				if (res.isConfirmed) {
+					Notification.requestPermission()
+				}
+			})
+		}
+
+		unlockAudioContext(queueAudio)
+
+		try {
+			console.log('masuk nih')
+			// const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
+
+			// curBtn.attr('disabled', true)
+			// curBtn.text('Please Wait')
+
+			const deviceId = crypto.randomUUID()
+
+			// // Ambil fcm token
+			// const fcmToken = await getFCM(registration)
+
+			// console.log(fcmToken)
+
+			const docRef = await addDoc(collection(db, curPath), {
+				name: $('#namebox').val(),
+				deviceId: deviceId,
+				isDone: false,
+				timestamp: Date.now(),
+				fcmToken: null,
+				status: 'waiting',
+			})
+
+			const newQueueID = docRef.id
+			const singleQueuePath = `${curPath}/${newQueueID}`
+
+			const queueItem = {
+				queueId: newQueueID,
+				path: singleQueuePath,
+				univId: curParams.id,
+				eventId: curParams.event
+			}
+
+			saveQueueToStorage(queueItem)
+			listenToSingleQueue(singleQueuePath, newQueueID)
+
 			Swal.fire({
 				title: 'Success!',
 				text: 'Silahkan tunggu nama Anda dipanggil oleh tim kami',
@@ -148,11 +192,28 @@ $(async function () {
 				showConfirmButton: true,
 				confirmButtonText: 'Tutup',
 				showCancelButton: false
-			});
+			})
 
-			$('#namebox').val(null);
-			curBtn.attr('disabled', false);
-			curBtn.text('Daftar');
-		})
+			$('html, body').animate({
+				scrollTop: $(document).height()
+			}, 1000)
+
+			$('#namebox').val(null)
+		} catch (err) {
+			console.log('Ada yang salah', err)
+
+			Swal.fire({
+				title: 'Error!',
+				text: 'Ada kendala pada booth! Silahkan coba lagi',
+				icon: 'error',
+				showConfirmButton: true,
+				confirmButtonText: 'Tutup',
+				showCancelButton: false
+			})
+
+		} finally {
+			curBtn.attr('disabled', false)
+			curBtn.text('Daftar')
+		}
 	})
 })

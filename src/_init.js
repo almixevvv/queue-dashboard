@@ -36,7 +36,3 @@ export async function fetchConfig() {
         }
     }
 }
-
-export async function fetchUniversity() {
-
-}
