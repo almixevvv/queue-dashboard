@@ -3,12 +3,15 @@ import { collection, query, onSnapshot } from 'firebase/firestore'
 import Swal from 'sweetalert2'
 
 import { db } from './_setup'
-import { getUrlParameter, fetchUniversity, showLoader, renderTable, getFCM, unlockAudioContext, saveQueueToStorage, listenToSingleQueue } from './_function'
+import { getUrlParameter, fetchUniversity, showLoader, unlockAudioContext, saveQueueToStorage } from './_function'
 import { fetchConfig, startLoader } from './_init'
+import { boothListener, listenToSingleQueue } from './_listener'
+import { getFCM, requestPermission } from './_notifications'
 
 const curParams = {
 	id: getUrlParameter('uid'),
-	event: null
+	eventId: null,
+	boothName: null
 }
 
 let queueAudio = null;
@@ -42,7 +45,6 @@ $(async function () {
 		curParams.id = curParams.id
 	}
 
-	// Setelah event ID terisi, baru tentukan curPath
 	const curPath = `Event/${curParams.event}/${curParams.id}`
 
 	try {
@@ -51,45 +53,17 @@ $(async function () {
 		$('#uniName').text(resp.body.name)
 		$('#uniCountry').text(resp.body.country)
 
+		curParams.boothName = resp.body.name
+
 		if (resp.body.image != null || resp.body.image != '') {
 			$('#uniImage').attr('src', resp.body.image)
 		}
 
 		showLoader(false)
 
-		// Melakukan sinkronisasi data antrian
-		onSnapshot(query(collection(db, curPath), orderBy('timestamp', 'asc')), (querySnapshot) => {
-			$('#formBody').empty()
+		// Booth change listener
+		boothListener(curPath)
 
-			if (querySnapshot.docs.length == 0) {
-				$('#formBody')
-					.append(`<tr>
-			        			<td colspan="4">
-			            			<h5 class="text-center text-muted font-italic my-5">Data kosong</h5>
-			            		</td>
-			        		 </tr>`)
-
-				return
-			}
-
-			let curCounter = 0
-
-			querySnapshot.forEach((doc) => {
-				curCounter++
-
-				const curData = doc.data()
-				const $curEl = renderTable({
-					counter: curCounter,
-					name: curData.name,
-					time: curData.timestamp,
-					status: curData.status
-				})
-
-				$('#formBody')
-					.append($curEl)
-					.show('slide', { direction: 'left' }, 1000)
-			})
-		})
 	} catch (err) {
 		Swal.fire({
 			title: 'Invalid Configuration',
@@ -126,46 +100,23 @@ $(async function () {
 			return
 		}
 
-		if ('Notification' in window && Notification.permission !== 'granted') {
-			await Notification.requestPermission()
-		}
-
-		let permission = Notification.permission
-
-		if (permission !== 'granted') {
-			Swal.fire({
-				title: 'Ijinkan Notifikasi',
-				text: 'Silahkan nyalakan notifikasi untuk mengetahui giliran Anda',
-				icon: 'warning',
-				showConfirmButton: true,
-				confirmButtonText: 'Nyalakan',
-				showCancelButton: false
-			}).then((res) => {
-				if (res.isConfirmed) {
-					Notification.requestPermission()
-				}
-			})
-		}
-
+		requestPermission()
 		unlockAudioContext(queueAudio)
 
 		try {
-			console.log('masuk nih')
-			// const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
+			const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
 
-			// curBtn.attr('disabled', true)
-			// curBtn.text('Please Wait')
+			curBtn.attr('disabled', true)
+			curBtn.text('Please Wait')
 
 			const deviceId = crypto.randomUUID()
 
-			// // Ambil fcm token
-			// const fcmToken = await getFCM(registration)
-
-			// console.log(fcmToken)
-
+			// Ambil fcm token
+			const fcmToken = await getFCM(registration)
 			const docRef = await addDoc(collection(db, curPath), {
 				name: $('#namebox').val(),
 				deviceId: deviceId,
+				boothName: curParams.boothName,
 				isDone: false,
 				timestamp: Date.now(),
 				fcmToken: null,
