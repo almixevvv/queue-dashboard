@@ -123,13 +123,11 @@ export function listenToSingleQueue(queuePath, queueId) {
     const queueRef = doc(db, queuePath)
 
     const unsubscribe = onSnapshot(queueRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data()
+        const data = docSnap.data()
 
-            if (data.status === 'called') {
-                pushNativeNotification(data.name, data.boothName || "Booth")
-                // cleanQueue(queueId)
-            }
+        if (data.status === 'called') {
+            pushNativeNotification(data.name, data.boothName || "Booth")
+            // cleanQueue(queueId)
         }
     })
 

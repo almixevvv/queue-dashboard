@@ -55,7 +55,6 @@ export async function pushNativeNotification(userName, boothName) {
         body: `Halo ${userName}, silakan menuju ke ${boothName} sekarang!`,
         icon: '/assets/img/icaneducation.png',
         vibrate: [500, 200, 500, 200, 800],
-        tag: `queue-${boothName}`,
         requireInteraction: true
     }
 
