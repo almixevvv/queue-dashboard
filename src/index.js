@@ -3,22 +3,23 @@ import { collection, query, onSnapshot } from 'firebase/firestore'
 import Swal from 'sweetalert2'
 
 import { db } from './_setup'
-import { getUrlParameter, fetchUniversity, showLoader, unlockAudioContext, saveQueueToStorage } from './_function'
+import { getUrlParameter, fetchUniversity, showLoader, unlockAudioContext, saveQueueToStorage, getDeviceId, saveQueueToLocaleStorage, listenToQueueDocument, getFcmToken } from './_function'
 import { fetchConfig, startLoader } from './_init'
-import { boothListener, listenToSingleQueue } from './_listener'
+import { boothListener } from './_listener'
 import { getFCM, requestPermission } from './_notifications'
-
-const curParams = {
-	id: getUrlParameter('uid'),
-	eventId: null,
-	boothName: null
-}
 
 let queueAudio = null;
 
 $(async function () {
+
+	const curParams = {
+		id: getUrlParameter('uid'),
+		eventId: null,
+		boothName: null
+	}
+
+
 	showLoader(true)
-	startLoader(curParams.id)
 
 	const curConfig = await fetchConfig()
 
@@ -63,8 +64,9 @@ $(async function () {
 
 		// Booth change listener
 		boothListener(curPath)
-
 	} catch (err) {
+		console.log(err)
+
 		Swal.fire({
 			title: 'Invalid Configuration',
 			text: 'Link tidak valid. Silahkan coba lagi',
@@ -80,11 +82,29 @@ $(async function () {
 		return
 	}
 
+	const registration = await navigator.serviceWorker.register("firebase-messaging-sw.js")
+	const curStat = await Notification.requestPermission()
+
+	if (curStat === 'denied') {
+		Swal.fire({
+			title: 'Ijinkan Notifikasi',
+			text: 'Silahkan nyalakan notifikasi untuk mengetahui giliran Anda',
+			icon: 'warning',
+			showConfirmButton: true,
+			confirmButtonText: 'Nyalakan',
+			showCancelButton: false
+		}).then((res) => {
+			Notification.requestPermission()
+		})
+	}
+
+	/**  */
+
 	$('#insBtn').on('click', async function () {
-
 		let curBtn = $(this)
+		const $elName = $('#namebox')
 
-		if ($('#namebox').val() === '' || $('#namebox').val().length < 2) {
+		if ($elName.val() === '' || $elName.val().length < 2) {
 			Swal.fire({
 				title: 'Nama Kosong',
 				text: 'Silahkan mengisi nama Anda untuk mulai mengantri',
@@ -101,40 +121,42 @@ $(async function () {
 		}
 
 		requestPermission()
-		unlockAudioContext(queueAudio)
 
 		try {
-			const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js")
 
-			curBtn.attr('disabled', true)
-			curBtn.text('Please Wait')
+			const permStat = await Notification.requestPermission()
+			let fcmToken = null
 
-			const deviceId = crypto.randomUUID()
+			if (permStat == 'granted') {
+				fcmToken = await getFcmToken()
+			}
 
-			// Ambil fcm token
-			const fcmToken = await getFCM(registration)
+			const deviceId = getDeviceId()
 			const docRef = await addDoc(collection(db, curPath), {
-				name: $('#namebox').val(),
+				name: $elName.val(),
 				deviceId: deviceId,
 				boothName: curParams.boothName,
 				isDone: false,
 				timestamp: Date.now(),
-				fcmToken: null,
+				fcmToken: fcmToken,
 				status: 'waiting',
 			})
 
-			const newQueueID = docRef.id
-			const singleQueuePath = `${curPath}/${newQueueID}`
+			const newQueueId = docRef.id
+			const singleQueuePath = `${curPath}/${newQueueId}`
 
-			const queueItem = {
-				queueId: newQueueID,
+			const newQueueItem = {
+				queueId: newQueueId,
 				path: singleQueuePath,
 				univId: curParams.id,
-				eventId: curParams.event
+				eventId: curParams.event,
+				boothName: curParams.boothName,
+				status: 'waiting',
+				registeredAt: Date.now()
 			}
 
-			saveQueueToStorage(queueItem)
-			listenToSingleQueue(singleQueuePath, newQueueID)
+			saveQueueToLocaleStorage(newQueueItem)
+			listenToQueueDocument(singleQueuePath)
 
 			Swal.fire({
 				title: 'Success!',
@@ -144,27 +166,20 @@ $(async function () {
 				confirmButtonText: 'Tutup',
 				showCancelButton: false
 			})
-
-			$('html, body').animate({
-				scrollTop: $(document).height()
-			}, 1000)
-
-			$('#namebox').val(null)
 		} catch (err) {
-			console.log('Ada yang salah', err)
+			console.log('Ada masalah', err)
 
 			Swal.fire({
-				title: 'Error!',
-				text: 'Ada kendala pada booth! Silahkan coba lagi',
-				icon: 'error',
-				showConfirmButton: true,
-				confirmButtonText: 'Tutup',
-				showCancelButton: false
+				title: 'Invalid Configuration',
+				text: 'Ada kendala jaringan. Silahkan coba lagi',
+				icon: 'warning',
+				showConfirmButton: false,
+				showCancelButton: false,
+				allowOutsideClick: false,
+				didOpen: () => {
+					Swal.hideLoading()
+				}
 			})
-
-		} finally {
-			curBtn.attr('disabled', false)
-			curBtn.text('Daftar')
 		}
 	})
 })

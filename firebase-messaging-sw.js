@@ -15,9 +15,32 @@ const messaging = firebase.messaging();
 
 // Ini yang jalan kalau tab tertutup/background
 messaging.onBackgroundMessage((payload) => {
-    const { title, body } = payload.notification || {};
+    const { title, body } = payload.notification || {}
     self.registration.showNotification(title || "Giliran Anda", {
         body: body || "Silakan menuju booth sekarang",
-        icon: "/assets/img/icaneducation.png" // opsional, siapkan icon kecil
-    });
-});
+        icon: "assets/img/icaneducation.png" // opsional, siapkan icon kecil
+    })
+})
+
+// Local notification
+self.addEventListener('push', (event) => {
+    let data = {};
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data = { body: event.data.text() };
+        }
+    }
+
+    const title = data.title || "Tes Notifikasi Native";
+
+    const options = {
+        body: data.body || "Berhasil memicu event push!",
+        icon: "assets/img/icaneducation.png"
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    )
+})

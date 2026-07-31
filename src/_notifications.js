@@ -47,31 +47,3 @@ export async function requestPermission() {
         })
     }
 }
-
-/** Send Notification ke user */
-export async function pushNativeNotification(userName, boothName) {
-    const title = `Giliran Anda Tiba! 🔔`;
-    const options = {
-        body: `Halo ${userName}, silakan menuju ke ${boothName} sekarang!`,
-        icon: '/assets/img/icaneducation.png',
-        vibrate: [500, 200, 500, 200, 800],
-        requireInteraction: true
-    }
-
-    if ("serviceWorker" in navigator) {
-        const reg = await navigator.serviceWorker.getRegistration()
-
-        if (reg && reg.active) {
-            reg.showNotification(title, options)
-            playSound()
-
-            return
-        }
-    }
-
-    // Fallback native notification
-    if ("Notification" in window && Notification.permission === 'granted') {
-        new Notification(title, options)
-        playSound()
-    }
-}

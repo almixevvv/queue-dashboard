@@ -114,32 +114,33 @@ export function boothListener(curPath) {
     })
 }
 
-const activeListener = {}
+// const activeListener = {}
+// export function listenToSingleQueue(queuePath, queueId) {
+//     // Hapus kalau ada listener yang udah jalan
+//     if (activeListener[queueId]) return
 
-export function listenToSingleQueue(queuePath, queueId) {
-    // Hapus kalau ada listener yang udah jalan
-    if (activeListener[queueId]) return
+//     const queueRef = doc(db, queuePath)
 
-    const queueRef = doc(db, queuePath)
+//     console.log('bunyi nih notif')
 
-    const unsubscribe = onSnapshot(queueRef, (docSnap) => {
-        const data = docSnap.data()
+//     const unsubscribe = onSnapshot(queueRef, (docSnap) => {
+//         const data = docSnap.data()
 
-        if (data.status === 'called') {
-            pushNativeNotification(data.name, data.boothName || "Booth")
-            // cleanQueue(queueId)
-        }
-    })
+//         if (data.status === 'called') {
+//             pushNativeNotification(data.name, data.boothName || "Booth")
+//             // cleanQueue(queueId)
+//         }
+//     })
 
-    activeListener[queueId] = unsubscribe
-}
+//     activeListener[queueId] = unsubscribe
+// }
 
-export function cleanQueue(queueId) {
-    if (activeListener[queueId]) {
-        activeListener[queueId]() // Unsubscribe Firebase
-        delete activeListener[queueId] // Hapus dari memory
-        removeQueueFromStorage(queueId)
+// export function cleanQueue(queueId) {
+//     if (activeListener[queueId]) {
+//         activeListener[queueId]() // Unsubscribe Firebase
+//         delete activeListener[queueId] // Hapus dari memory
+//         removeQueueFromStorage(queueId)
 
-        console.log('[CLEAN UP] Listener untuk Queue ID mati', queueId)
-    }
-}
+//         console.log('[CLEAN UP] Listener untuk Queue ID mati', queueId)
+//     }
+// }
